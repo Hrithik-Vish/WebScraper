@@ -1,4 +1,4 @@
-name: Test API Endpoints
+name: Test MangaDex API Endpoint
 on: [workflow_dispatch]
 jobs:
   build:
@@ -6,24 +6,44 @@ jobs:
     steps:
       - name: Run connection test
         run: |
+          python3 -m pip install requests --quiet
           python3 << 'EOF'
           import requests
 
           url = "https://api.mangadex.org/chapter"
-          params = {"order[readableAt]": "desc"}
+          
+          # Using the params dictionary prevents the 400 Bad Request URL encoding error
+          params = {
+              "order[readableAt]": "desc",
+              "limit": 5
+          }
+          
+          # Always use a custom User-Agent to avoid instant blocks
+          headers = {
+              "User-Agent": "MyGithubActionScraper/1.0 (contact: your@email.com)"
+          }
 
           print("=" * 60)
           print(f"URL: {url}")
+          
           try:
               r = requests.get(
                   url,
                   params=params,
-                  headers={'User-Agent': 'Mozilla/5.0'},
+                  headers=headers,
                   timeout=15
               )
               print(f"Status Code: {r.status_code}")
-              print(r.text[:500])
+              
+              if r.status_code == 200:
+                  print("Success! Data preview:")
+                  print(r.text[:500])
+              else:
+                  print("Failed. Server responded with:")
+                  print(r.text[:500])
+                  
           except Exception as e:
               print(f"ERROR: {e}")
-          print()
+              
+          print("=" * 60)
           EOF
