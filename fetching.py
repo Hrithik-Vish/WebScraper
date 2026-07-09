@@ -1,0 +1,38 @@
+import requests
+
+def fetch_html(url):
+    try:
+        user_agent_header = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        }
+        response = requests.get(url, timeout= (5, 30), headers=user_agent_header)
+        if response.ok:
+            print("pass")
+            return response.text
+        else:
+            print("there was a problem, resturned status code: ",response.status_code)
+            return
+
+    except requests.exceptions.ConnectTimeout:
+        print("connection timeout")
+        print("fail")
+    except requests.exceptions.ConnectionError:
+        print("connection error")
+        print("fail")
+    except requests.exceptions.RequestException as error:
+        print("details: ", error)
+        print("fail")
+
+
+html_txt = fetch_html("https://asurascans")
+
+if html_txt:
+    with open("html_txt.txt", "w", encoding = "utf-8") as file:
+        file.write(html_txt)
+    print("data saved to html_txt sucessfully")
+else: 
+    print("cannot save data, no data fetched to save")
+    
+
+
+
