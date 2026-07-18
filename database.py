@@ -11,6 +11,7 @@
 
 import os
 import time
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
@@ -51,10 +52,6 @@ def fetch_websites():
 
 
 
-
-    
-
-
 def fetch_novels(site_id):
     max_attempts = 2
 
@@ -79,3 +76,87 @@ def fetch_novels(site_id):
             else:
                 print(f"attempt: {attempt} failed,\nall attempts failed, try again later, exception: {e}")
 
+
+
+def update_novels_table(updated_novel_list):
+    failToUpdate_list = []
+    for novels in updated_novel_list:
+        max_attempts = 3
+
+        for attempt in range(1, max_attempts +1):
+            print(f"attempting to update novels table, attepmt: {attempt}")
+
+            try: 
+                print(f'updating the novels table for the novel_id: {novels["id"]} and novel_name: {novels["novel_name"]}')
+                timestamptz = datetime.now(timezone.utc).isoformat()
+                update_novels = (
+                    supabase.table("novels").update({"latest_chap": novels["latest_chap"],"chapter_url": novels["chapter_url"], "updated_at": timestamptz}).eq("id", novels["id"]).execute()
+                )
+                
+            except Exception as e:
+                if attempt < max_attempts:
+                    print(f"error happened, error: {e}, trying again")
+                    time.sleep(5)
+                else:
+                    print(f"all attempts failed, error: {e}, moving to next novel if exists")
+                    failToUpdate_list.append(novels["id"])
+    
+    return failToUpdate_list
+
+
+def insert_scraper_logs():
+    max_attempts = 3
+    status = False
+    row_id = None
+
+    for attempt in range(1, max_attempts +1):
+        print(f"inserting into scraper_logs, attempt: {attempt}")
+
+        try:
+
+            timestamptz = datetime.now(timezone.utc).isoformat()
+            insert_scraper_log = (
+                supabase.table("scraper_logs").insert({"last_run_timestamp": timestamptz}).execute()
+            )
+            if insert_scraper_log.data:
+                row_id = insert_scraper_log.data[0]["id"]
+                status = True
+                break
+            else:
+                raise ValueError("insert operation succeeded but supabase returned no data")
+
+        except Exception as e:
+            if attempt < max_attempts:
+                print(f"insert operation failed, trying again. error: {e}")
+                time.sleep(5)
+            else:
+                print(f"all attempts failed, scraper cannot run further, please try againg later. error: {e}")
+    
+    return status, row_id
+
+
+
+def update_scraper_logs(row_id):
+    max_attempts = 3
+    status = False
+
+    for attempt in range(1, max_attempts +1):
+        print(f"updating scraper_logs, attempt: {attempt}")
+
+        try:
+            update_scraper_log = (
+                supabase.table("scraper_logs").update({"run_status": "success"}).eq("id", row_id).execute()
+            )
+            status = True
+            break
+
+        except Exception as e:
+            if attempt < max_attempts:
+                print(f"updation operation failed, trying again. error: {e}")
+                time.sleep(5)
+            else:
+                print(f"all attempts failed, scraper cannot run further, please try againg later. error: {e}")
+    
+    return status
+
+    
