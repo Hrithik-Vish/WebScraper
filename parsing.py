@@ -17,14 +17,18 @@ def parse_html(file):
     
     return html_data
 
-with open("html_txt.txt", "r", encoding="utf-8") as file:
-    html_file = file.read()
 
-url_list = parse_html(html_file)
 
-if url_list:
-    with open("a_tags.txt", "w", encoding = "utf-8") as file:
-        for links in url_list:
-            file.write(f"{links}\n")
-    print("Done writing all href's")
+
+# this is for testing the function
+# with open("html_txt.txt", "r", encoding="utf-8") as file:
+#     html_file = file.read()
+
+# url_list = parse_html(html_file)
+
+# if url_list:
+#     with open("a_tags.txt", "w", encoding = "utf-8") as file:
+#         for links in url_list:
+#             file.write(f"{links}\n")
+#     print("Done writing all href's")
 

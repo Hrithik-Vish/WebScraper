@@ -159,4 +159,28 @@ def update_scraper_logs(row_id):
     
     return status
 
+
     
+def fetch_subscribers(novel_id_list):
+    max_attempts = 5
+
+    for attempt in range(1, max_attempts +1):
+        print(f"fetching subscribers, attempt: {attempt}")
+
+        try:
+            read_subscribers = (
+                supabase.table("user_subscriptions").select("novel_id, users(telegram_user_id)").in_("novel_id", novel_id_list).eq("reading_status", "reading").execute()
+            )
+            if read_subscribers.data:
+                subscribers_list = read_subscribers.data
+                return subscribers_list
+            else:
+                print("data fetched was empty")
+                return
+
+        except Exception as e:
+            if attempt < max_attempts:
+                print(f"attempt: {attempt} failed due to exception: {e}, trying again")
+                time.sleep(5)
+            else:
+                print(f"attempt: {attempt} failed,\nall attempts failed, try again later, exception: {e}")
