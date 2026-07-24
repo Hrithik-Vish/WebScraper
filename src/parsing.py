@@ -6,7 +6,7 @@ def parse_html(file):
     title = re.escape("hello world")
 
     html_content = soup.find_all("a", href = re.compile(rf"[/-]?(chapters?|chs?|episodes?|eps?|({title}))[/-]?(\d+(\.\d+)?)"))
-    #re.compile needs working woith edge cases
+    #re.compile needs working with edge cases
     
     html_data = []
 
